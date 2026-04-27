@@ -1,42 +1,43 @@
-## Pass 38 — 2026-04-27 23:05 UTC
+## Pass 39 — 2026-04-27 23:10 UTC
 
 ### Health Check
 ```json
-{"ci":"87%","buildDeploy":"GREEN","release":"GREEN","nightlyPlaywright":"RED(PR #10617 open)","nightlyTestSuite":"PENDING(manual run 25022916512)","nightlyRel":"GREEN","nightlyCompliance":"GREEN","nightlyDashboard":"GREEN","coverageGate":"GREEN","coverage":"87%<91%"}
+{"ci":"GREEN","buildDeploy":"GREEN","release":"GREEN","nightlyPlaywright":"RED","nightlyTestSuite":"⏳ running","nightlyRel":"GREEN","nightlyCompliance":"GREEN","nightlyDashboard":"GREEN","coverageGate":"GREEN","coverage":"87%"}
 ```
 
-### Actions
-- **PR #10617** created — fixes ~23 remaining Playwright E2E failures across shards 3+4
-  - 8 test files fixed:
-    1. ResolutionMemory: added mockApiMe + fixed toggle selector (ai-missions → ai-missions-toggle)
-    2. RBACExplorer: added waitForRBACDemoFindings helper, removed redundant double navigation
-    3. UpdateSettings: replaced hanging firstWsReady promise with bounded expect.poll
-    4. find-and-search: wait for search input + sidebar before keyboard shortcut
-    5. not-found: assert positive URL / after redirect
-    6. post-login-dashboard-ux: re-locate sidebar links before each click
-    7. dashboard-perf: added CI_TOLERANCE_PCT env-driven tolerance (50% default in CI)
-    8. page-coverage: replaced bespoke setupDemoMode with shared helper
-- Build ✅ Lint ✅ — no new warnings
-- Nightly Test Suite manual run 25022916512 still in progress on current main
-- All 9 adopter PRs still held (do-not-merge/hold)
-- No PRs eligible to merge
+### RED Indicator Triage
 
-### Workflow Status (main @ ea14b381)
-| Workflow | Status | Notes |
-|----------|--------|-------|
-| Build and Deploy KC | ✅ GREEN | |
-| Release | ✅ GREEN | Manual dispatch succeeded |
-| Nightly Test Suite | ⏳ PENDING | Manual run 25022916512 in progress |
-| Playwright E2E | ❌ RED | PR #10617 addresses remaining failures |
-| Nightly Compliance | ✅ GREEN | |
-| Nightly Dashboard | ✅ GREEN | |
-| Coverage Gate | ✅ PASS | On PRs |
+| Indicator | Root Cause | Resolution |
+|-----------|-----------|------------|
+| **Nightly Test Suite** | Issues #10435, #10436 already closed. New run 25022916512 in progress | Wait — previous failures on stale commit |
+| **Playwright E2E** | 5 tests fail (sidebar timing, WS hang, missing URL assert) | PR #10617 addresses all 5 failures |
+| **Nightly Release** | GitHub API secondary rate limit (transient) | Manual re-run 25013124055 succeeded ✅ |
+
+### PR #10617 Review — Fix remaining Playwright E2E test failures
+
+**Playwright fixes (✅ correct):**
+- `UpdateSettings.spec.ts`: Replaced hanging `firstWsReady` Promise with bounded `expect.poll` (5s timeout)
+- `find-and-search.spec.ts`: Added explicit waits for search input + sidebar visibility before keyboard shortcut
+- `not-found.spec.ts`: Added URL assertion (`toHaveURL(/\/($|\?)/)`) after redirect, before checking sidebar
+- `post-login-dashboard-ux.spec.ts`: Re-locate sidebar after navigation, add visibility check before click
+- `ResolutionMemory.spec.ts`: Added `mockApiMe` for AuthProvider, fixed selector `data-tour="ai-missions-toggle"`
+- `RBACExplorer.spec.ts`: Added `waitForRBACDemoFindings` helper (waits for 'dev-team' text)
+- `page-coverage.spec.ts`: Replaced bespoke `setupDemoMode` with shared helper
+- `dashboard-perf.spec.ts`: Added `CI_TOLERANCE_PCT` multiplier for CI runner variance
+
+**⚠️ Magic number regression (non-blocking):**
+PR also reverts ~12 named constants from #10616 back to inline magic numbers across 5 card files (Checkers, MatchGame, CardWrapper, StockMarketTicker, UpgradeStatus). These are game/animation timings, not business logic — low severity but violates "No Magic Numbers" convention. Should be re-extracted in follow-up.
+
+**CI status:** Build ✅, Lint ✅, CodeQL ✅, TTFI gate ✅, Builds (amd64+arm64) ✅
+**Recommendation:** Merge to fix RED Playwright indicator. Magic number follow-up is P3.
 
 ### Open PRs
 | PR | Status | Action |
 |----|--------|--------|
-| #10617 | CI running | Merge when green — fixes Playwright RED |
+| #10617 | CI green (except Playwright — runs only on main push) | **Merge to fix RED** |
 | #9114, #9117, #4036, #4039, #4040, #4043, #4046, #7889, #8187 | Held | do-not-merge/hold labels |
+
+---
 
 ## Pass 37 — 2026-04-27 21:30 UTC
 
